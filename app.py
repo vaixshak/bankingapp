@@ -2,7 +2,7 @@ from flask_cors import CORS
 from flask_login import login_user, logout_user, login_required, current_user
 from flask import Flask, render_template, request, redirect, url_for, flash
 from extensions import db, bcrypt, login_manager
-from models import User
+from models import User, Transaction
 from flask_migrate import Migrate
 import random
 
@@ -57,6 +57,18 @@ def register():
     db.session.commit()
 
     return {"message": "Registration successful", "account_number": account_number}, 201
+
+@app.route("/transaction", methods=["POST"])
+@login_required
+def transaction():
+    from transaction_service import perform_transaction
+    data = request.json
+    amount = data.get("amount")
+    txn_type = data.get("type")  # 'credit' or 'debit'
+
+    return_data = perform_transaction(current_user.id, amount, txn_type)
+    return return_data
+
 
 @app.route('/dashboard')
 @login_required
